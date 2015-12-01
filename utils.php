@@ -2,6 +2,29 @@
 
 define("BASEPATH", "scratch/");
 
+function deleteDirectory($dir) {
+    if (!file_exists($dir)) {
+        return true;
+    }
+
+    if (!is_dir($dir)) {
+        return unlink($dir);
+    }
+
+    foreach (scandir($dir) as $item) {
+        if ($item == '.' || $item == '..') {
+            continue;
+        }
+
+        if (!deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+            return false;
+        }
+
+    }
+
+    return rmdir($dir);
+}
+
 $dbh = false;
 
 function opendb()
@@ -17,7 +40,7 @@ function cleanup()
     foreach($Users as $u) {
         $then = $u->last;
         if($now - $then > 60) {
-            echo "removed";
+            echo "removed".$u->name."\n";
             remove_user($u->name);
         }
     }
@@ -31,8 +54,7 @@ function remove_user($name)
     $dropUsers->execute();
 
     if(is_dir(constant("BASEPATH").$name)) {
-        shell_exec("echo %CD% > log.txt");
-        //shell_exec('DEL /Q /S "' . constant("BASEPATH").$name . '"');
+        deleteDirectory(constant("BASEPATH").$name);
     }
 }
 
