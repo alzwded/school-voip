@@ -30,6 +30,58 @@ function button_onclick(e) {
     })
 }
 
+function checkMessages() {
+    if(getState() != 'silence') {
+        setTimeout(checkMessages, 100)
+        return
+    }
+    var request = new XMLHttpRequest();
+    request.open('GET', 'listen.php', true);
+    request.responseType = 'arraybuffer';
+    request.timeout = 1000
+
+    // Decode asynchronously
+    request.onload = function() {
+        if(request.response.byteLength == 0) {
+            setTimeout(checkMessages, 100)
+            return
+        }
+        var estimatedTime = (request.response.byteLength / 4) / 4.41 + 2
+        setTimeout(checkMessages, estimatedTime)
+
+        console.log('received ' + request.response.byteLength)
+        var source = playbackCtx.createBufferSource()
+        console.log('start playback')
+        source.onended = function() {
+            console.log('end playback')
+        }
+        source.onerror = function() {
+            console.loge('playback ended in an error')
+        }
+        buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
+        // PHP outputting exceptions to stdout puts me off; round the
+        // length to the highest multiple of 4
+        var len = Math.floor(request.response.byteLength / 4)
+        var f32 = new Float32Array(request.response, 0, len)
+        buffer.copyToChannel(f32, 0)
+        source.buffer = buffer
+        source.connect(playbackCtx.destination)
+        source.loop = false
+        source.connect(playbackCtx.destination)
+
+        source.start()
+    }
+    request.onerror = function(e) {
+        setTimeout(checkMessages, 100)
+        alert(e.target.status + "\n" + e.target.responseText)
+    }
+    request.onabort = function(e) {
+        setTimeout(checkMessages, 100)
+    }
+    request.send();
+}
+
+
 function init_voip()
 {
     var session = {
@@ -42,39 +94,7 @@ audio: true,
     var audioContext = window.AudioContext
     playbackCtx = new AudioContext()
 
-    setInterval(function() {
-        if(dontAskForMore) return
-        if(getState() != 'silence') return
-        var request = new XMLHttpRequest();
-        request.open('GET', 'listen.php', true);
-        request.responseType = 'arraybuffer';
-
-        // Decode asynchronously
-        request.onload = function() {
-            if(request.response.byteLength == 0) return
-            console.log('received ' + request.response.byteLength)
-            var source = playbackCtx.createBufferSource()
-            source.onended = function() {
-                dontAskForMore = false
-            }
-            buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
-            // PHP outputting exceptions to stdout puts me off; round the
-            // length to the highest multiple of 4
-            var len = Math.floor(request.response.byteLength / 4)
-            var f32 = new Float32Array(request.response, 0, len)
-            buffer.copyToChannel(f32, 0)
-            source.buffer = buffer
-            source.connect(playbackCtx.destination)
-            source.loop = false
-            source.connect(playbackCtx.destination)
-            source.start()
-            dontAskForMore = true
-        }
-        request.onerror = function(e) {
-            alert(e.target.status + "\n" + e.target.responseText)
-        }
-        request.send();
-    }, 100)
+    setTimeout(checkMessages, 100)
 }
 
 function initializeRecorder(stream) {
@@ -108,7 +128,7 @@ function recorderProcess(e) {
     state = getState()
     if(state == 'gray') return
     for(var i = 0; i < e.inputBuffer.length; i++) {
-        if(Math.abs(samp[i]) > 0.25) {
+        if(Math.abs(samp[i]) > 0.1) {
             if(state == 'recording') {
                 leBuf.push(samp[i])
             } else if(state == 'waiting') {
@@ -129,6 +149,8 @@ function recorderProcess(e) {
             } else if(state == 'waiting') {
                 leDuf.push(samp[i])
                 if(leDuf.length > 44100 / 1.5) {
+                    var arr = leDuf.slice(0, 44100 / 20)
+                    leBuf.push.apply(leBuf, arr)
                     $('#status').removeClass('idling playing talking')
                     $('#status').addClass('idling')
                     state = 'silence'

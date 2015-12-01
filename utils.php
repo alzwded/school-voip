@@ -5,6 +5,8 @@
 // DISCLAIMER: sqlite was not a good idea of a database
 //             hence the usage of the try-catch-try-again pattern
 
+error_reporting(0);
+
 define("BASEPATH", "scratch/");
 
 function deleteDirectory($dir) {
@@ -44,7 +46,7 @@ function cleanup()
         $now = time();
         foreach($Users as $u) {
             $then = $u->last;
-            if($now - $then > 60) {
+            if($now - $then > 60 * 5) {
                 try {
                     remove_user($u->name);
                     echo "removed".$u->name."\n";
