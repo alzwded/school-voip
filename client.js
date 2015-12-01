@@ -52,12 +52,8 @@ audio: true,
             }
             //buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
             buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
-            if(request.response.byteLength % 4 != 0) {
-                var len = Math.floor(request.response.byteLength / 4) * 4
-                if(len % 4 != 0) alert('wtf')
-                request.response = request.response.slice(0, len)
-            }
-            var f32 = new Float32Array(request.response)
+            var len = Math.floor(request.response.byteLength / 4)
+            var f32 = new Float32Array(request.response, 0, len)
             buffer.copyToChannel(f32, 0)
             source.buffer = buffer
             source.connect(playbackCtx.destination)
