@@ -2,6 +2,8 @@
 
 include 'utils.php';
 
+session_start();
+
 if(!isset($_POST["username"]) || $_POST["username"] == "") {
     http_response_code(403);
     echo "no user name given";

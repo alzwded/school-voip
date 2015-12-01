@@ -65,7 +65,7 @@ function recorderProcess(e) {
     state = getState()
     if(state == 'gray') return
     for(var i = 0; i < e.inputBuffer.length; i++) {
-        if(Math.abs(samp[i]) > 0.7) {
+        if(Math.abs(samp[i]) > 0.25) {
             if(state == 'recording') {
                 leBuf.push(samp[i])
             } else if(state == 'waiting') {
@@ -85,7 +85,7 @@ function recorderProcess(e) {
                 leDuf.push(samp[i])
             } else if(state == 'waiting') {
                 leDuf.push(samp[i])
-                if(leDuf.length > 44100 / 4) {
+                if(leDuf.length > 44100 / 1.5) {
                     $('#status').removeClass('idling playing talking')
                     $('#status').addClass('idling')
                     state = 'silence'
@@ -114,6 +114,8 @@ function sendBuffer() {
             alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText)
         },
     }).done(function(data) {
+        console.log('upload done?')
+        console.log(data)
     })
 
     leBuf = new Array()

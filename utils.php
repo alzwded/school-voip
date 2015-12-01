@@ -35,15 +35,19 @@ function opendb()
 
 function cleanup()
 {
-    $Users = get_users();
-    $now = time();
-    foreach($Users as $u) {
-        $then = $u->last;
-        if($now - $then > 60) {
-            echo "removed".$u->name."\n";
-            remove_user($u->name);
+        $Users = get_users();
+        $now = time();
+        foreach($Users as $u) {
+            $then = $u->last;
+            if($now - $then > 60) {
+                try {
+                    remove_user($u->name);
+                    echo "removed".$u->name."\n";
+                } catch(Exception $e) {
+                    // sqlite doesn't like multiple users (as stated on their front page)
+                }
+            }
         }
-    }
 }
 
 function remove_user($name)
@@ -91,32 +95,50 @@ function get_users()
 function touch_user($username)
 {
     global $dbh;
-    $getUsers = $dbh->prepare("UPDATE users SET last = :last WHERE name = :name");
-    $getUsers->bindValue(":name", $username, SQLITE3_TEXT);
-    $getUsers->bindValue(":last", time(), SQLITE3_INTEGER);
-    $result = $getUsers->execute();
+    $again = true;
+    while($again) {
+        $again = false;
+        try {
+            $getUsers = $dbh->prepare("UPDATE users SET last = :last WHERE name = :name");
+            $getUsers->bindValue(":name", $username, SQLITE3_TEXT);
+            $getUsers->bindValue(":last", time(), SQLITE3_INTEGER);
+            $result = $getUsers->execute();
+        } catch(Exception $e) {
+            // do the unspeakable
+            $again = true;
+        }
+    }
 }
 
 function add_user($username)
 {
     if($user = get_user($username)) 
     {
-        echo "found him";
+        echo "found $username\n";
         touch_user($username);
         return;
     }
     if(!is_dir(constant("BASEPATH").$username)) {
         if(!mkdir(constant("BASEPATH").$username)) {
             http_response_code("500");
-            echo "failed to create user";
+            echo "failed to create user\n";
         }
     }
 
     global $dbh;
-    $getUsers = $dbh->prepare("INSERT INTO users (name,last) VALUES(:name,:last)");
-    $getUsers->bindValue(":name", $username, SQLITE3_TEXT);
-    $getUsers->bindValue(":last", time(), SQLITE3_INTEGER);
-    $result = $getUsers->execute();
+    $again = true;
+    while($again) {
+        $again = false;
+        try {
+            $getUsers = $dbh->prepare("INSERT INTO users (name,last) VALUES(:name,:last)");
+            $getUsers->bindValue(":name", $username, SQLITE3_TEXT);
+            $getUsers->bindValue(":last", time(), SQLITE3_INTEGER);
+            $result = $getUsers->execute();
+        } catch(Exception $e) {
+            // do the unthinkable
+            $again = true;
+        }
+    }
 }
 
 function read_users()
