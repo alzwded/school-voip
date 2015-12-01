@@ -1,6 +1,4 @@
-function button_onclick(e)
-{
-    alert('TODO connect')
+function button_onclick(e) {
     // $('#status').removeClass('idling playing')
     // $('#status').addClass('talking')
 
@@ -47,15 +45,77 @@ function initializeRecorder(stream) {
     recorder.connect(context.destination)
 }
 
+var leBuf = new Array(),
+    leDuf = new Array(),
+    state = 'stop'
+
+function getState() {
+    var el = $('#status')
+    if(el.hasClass('gray')) {
+        state = 'stop'
+        return 'stop'
+    } else if(state == 'stop') {
+        state = 'silence'
+    }
+    return state
+}
+
 function recorderProcess(e) {
     var samp = e.inputBuffer.getChannelData(0)
+    state = getState()
+    if(state == 'gray') return
     for(var i = 0; i < e.inputBuffer.length; i++) {
         if(Math.abs(samp[i]) > 0.7) {
-            console.log("big sample")
+            if(state == 'recording') {
+                leBuf.push(samp[i])
+            } else if(state == 'waiting') {
+                state = 'recording'
+                leBuf.push.apply(leBuf, leDuf)
+                leDuf = new Array()
+            } else if(state == 'silence') {
+                state = 'recording'
+                $('#status').removeClass('idling playing talking')
+                $('#status').addClass('talking')
+                console.log('changed status lol')
+                leBuf.push(samp[i])
+            }
+        } else {
+            if(state == 'recording') {
+                state = 'waiting'
+                leDuf.push(samp[i])
+            } else if(state == 'waiting') {
+                leDuf.push(samp[i])
+                if(leDuf.length > 44100 / 4) {
+                    $('#status').removeClass('idling playing talking')
+                    $('#status').addClass('idling')
+                    state = 'silence'
+                    sendBuffer()
+                }
+            } else if(state == 'silence') {
+                // NOP
+            }
         }
     }
 }
 
 function onError(e) {
     alert('cannot microphone')
+}
+
+function sendBuffer() {
+    var ddata = Float32Array.from(leBuf)
+    console.log('sending ' + (leBuf.length*4) + ' bytes')
+    jQuery.ajax('speak.php', {
+        'processData': false,
+        'contentType': 'application/octet-stream',
+        'data': ddata,
+        'method': 'PUT',
+        'error': function(jqXHR, textStatus, errorThrown) {
+            alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText)
+        },
+    }).done(function(data) {
+    })
+
+    leBuf = new Array()
+    leDuf = new Array()
 }
