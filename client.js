@@ -1,3 +1,13 @@
+// Author: Vlad Mesco
+// The file is part of school-voip, a school project on VoIP
+
+var playbackCtx,
+    dontAskForMore = false
+
+var leBuf = new Array(),
+    leDuf = new Array(),
+    state = 'stop'
+
 function button_onclick(e) {
     // $('#status').removeClass('idling playing')
     // $('#status').addClass('talking')
@@ -19,9 +29,6 @@ function button_onclick(e) {
         console.log(data)
     })
 }
-
-var playbackCtx,
-    dontAskForMore = false
 
 function init_voip()
 {
@@ -50,8 +57,9 @@ audio: true,
             source.onended = function() {
                 dontAskForMore = false
             }
-            //buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
             buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
+            // PHP outputting exceptions to stdout puts me off; round the
+            // length to the highest multiple of 4
             var len = Math.floor(request.response.byteLength / 4)
             var f32 = new Float32Array(request.response, 0, len)
             buffer.copyToChannel(f32, 0)
@@ -83,10 +91,6 @@ function initializeRecorder(stream) {
     // connect our recorder to the previous destination
     recorder.connect(context.destination)
 }
-
-var leBuf = new Array(),
-    leDuf = new Array(),
-    state = 'stop'
 
 function getState() {
     var el = $('#status')

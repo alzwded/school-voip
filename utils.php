@@ -1,4 +1,9 @@
 <?php
+// Author: Vlad Mesco
+// The file is part of school-voip, a school project on VoIP
+
+// DISCLAIMER: sqlite was not a good idea of a database
+//             hence the usage of the try-catch-try-again pattern
 
 define("BASEPATH", "scratch/");
 

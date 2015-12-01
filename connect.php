@@ -1,4 +1,6 @@
 <?php
+// Author: Vlad Mesco
+// The file is part of school-voip, a school project on VoIP
 
 include 'utils.php';
 
