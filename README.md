@@ -14,6 +14,11 @@ Setup
 1. `mkdir scratch`
 1. Start the Apache service
 
+Usage
+=====
+
+Connect to the server. Have some friends connect to the server. Speak into your microphone hole (loudly) and your buddies will hear the sound that came out of your mouth in their loud speakers. I assume you have a mic and your buddies have speakers. And that none of the levels are at 0%/Mute.
+
 Tech
 ====
 
