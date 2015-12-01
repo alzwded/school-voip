@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>voip prototype</title>
+    <script type="text/javascript" src="vendor/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="client.js"></script>
+    <style>
+span.status {
+    border:solid 2px black;
+    display:block;
+    width:100%;
+    text-align:center;
+}
+.idling {
+    background-color:white;
+}
+.talking {
+    background-color:red;
+}
+.playing {
+    background-color:blue;
+}
+.gray {
+    background-color:#ccc;
+}
+table {
+    width:100%;
+}
+    </style>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <td>
+          <span>username:&nbsp;</span>
+          <input type="text" id="username" value="" />
+          <input type="button" onclick="button_onclick()" value="connect" />
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <span class="status gray" id="status" >STATUS</span>
+        </td>
+      </tr>
+    </table>
+    <script type="text/javascript">
+      init_voip()
+    </script>
+  </body>
+</html>

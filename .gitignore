@@ -1,0 +1,5 @@
+scratch
+db.sqlite3
+log.txt
+log*
+*log
