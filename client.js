@@ -20,6 +20,9 @@ function button_onclick(e) {
     })
 }
 
+var playbackCtx,
+    dontAskForMore = false
+
 function init_voip()
 {
     var session = {
@@ -28,11 +31,51 @@ audio: true,
     }
     var recordRTC = null
     navigator.webkitGetUserMedia(session, initializeRecorder, onError)
+
+    var audioContext = window.AudioContext
+    playbackCtx = new AudioContext()
+
+    setInterval(function() {
+        if(dontAskForMore) return
+        if(getState() != 'silence') return
+        var request = new XMLHttpRequest();
+        request.open('GET', 'listen.php', true);
+        request.responseType = 'arraybuffer';
+
+        // Decode asynchronously
+        request.onload = function() {
+            if(request.response.byteLength == 0) return
+            console.log('received ' + request.response.byteLength)
+            var source = playbackCtx.createBufferSource()
+            source.onended = function() {
+                dontAskForMore = false
+            }
+            //buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
+            buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
+            if(request.response.byteLength % 4 != 0) {
+                var len = Math.floor(request.response.byteLength / 4) * 4
+                if(len % 4 != 0) alert('wtf')
+                request.response = request.response.slice(0, len)
+            }
+            var f32 = new Float32Array(request.response)
+            buffer.copyToChannel(f32, 0)
+            source.buffer = buffer
+            source.connect(playbackCtx.destination)
+            source.loop = false
+            source.connect(playbackCtx.destination)
+            source.start()
+            dontAskForMore = true
+        }
+        request.onerror = function(e) {
+            alert(e.target.status + "\n" + e.target.responseText)
+        }
+        request.send();
+    }, 100)
 }
 
 function initializeRecorder(stream) {
     var audioContext = window.AudioContext
-    var context = new AudioContext()
+    var context = new audioContext()
     var audioInput = context.createMediaStreamSource(stream)
     var bufferSize = 2048
     // create a javascript node

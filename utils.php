@@ -65,9 +65,17 @@ function remove_user($name)
 function get_user($name)
 {
     global $dbh;
-    $getUsers = $dbh->prepare("SELECT name,last FROM users WHERE name = :name");
-    $getUsers->bindValue(":name", $name, SQLITE3_TEXT);
-    $result = $getUsers->execute();
+    $again = true;
+    while($again) {
+        $again = false;
+        try {
+            $getUsers = $dbh->prepare("SELECT name,last FROM users WHERE name = :name");
+            $getUsers->bindValue(":name", $name, SQLITE3_TEXT);
+            $result = $getUsers->execute();
+        } catch(Exception $e) {
+            $again = true;
+        }
+    }
 
     $row = $result->fetchArray(SQLITE3_ASSOC);
     if($row) {
@@ -81,8 +89,16 @@ function get_user($name)
 function get_users()
 {
     global $dbh;
-    $getUsers = $dbh->prepare("SELECT name,last FROM users");
-    $result = $getUsers->execute();
+    $again = true;
+    while($again) {
+        $again = false;
+        try {
+            $getUsers = $dbh->prepare("SELECT name,last FROM users");
+            $result = $getUsers->execute();
+        } catch(Exception $e) {
+            $again = true;
+        }
+    }
 
     $users = Array();
     while($row = $result->fetchArray(SQLITE3_ASSOC)) {

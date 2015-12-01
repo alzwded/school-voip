@@ -39,10 +39,13 @@ foreach($users as $u) {
         $intelligentFileName = $intelligentFileName . "_1";
     }
     
+    $tempFileName = "__$intelligentFileName";
     $intelligentFileName = constant('BASEPATH').$u->name.'/'.$intelligentFileName;
+    $tempFileName = constant('BASEPATH').$u->name.'/'.$tempFileName;
 
+    file_put_contents($tempFileName, $data);
+    rename($tempFileName, $intelligentFileName);
     echo "wrote contents for $u->name from $username in $intelligentFileName\n";
-    file_put_contents($intelligentFileName, $data);
 }
 
 ?>
