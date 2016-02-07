@@ -29,7 +29,7 @@ cleanup();
 $users_php_sucks = get_users();
 $users = array_filter($users_php_sucks, function($el) {
     global $username;
-    if($el->name === $username) return false;
+    if($el->name === $username) { return false; }
     return $el;
 });
 

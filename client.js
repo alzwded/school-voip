@@ -21,7 +21,7 @@ function button_onclick(e) {
             $('#status').removeClass('idling playing talking')
             $('#status').addClass('gray')
             alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText)
-        },
+        }
     }).done(function(data) {
         $('#status').removeClass('gray')
         $('#status').addClass('idling')
@@ -85,16 +85,29 @@ function checkMessages() {
 function init_voip()
 {
     var session = {
-audio: true,
-       video: false
+        audio: true,
+        video: false
+    };
+//    var recordRTC = null;
+    
+    if (navigator.userAgent.indexOf("Firefox") !== -1) {
+//        navigator.mozGetUserMedia(session, initializeRecorder, onError);
+        
+        var p = navigator.mediaDevices.getUserMedia(session);
+        p.then(initializeRecorder);
+        p.catch(onError);
     }
-    var recordRTC = null
-    navigator.webkitGetUserMedia(session, initializeRecorder, onError)
+    else if(navigator.userAgent.indexOf("Chrome") !== -1 ) {
+        navigator.webkitGetUserMedia(session, initializeRecorder, onError);
+    }
+    else {
+        alert('use either Chrome or Firefox');
+    }
+    
+    var audioContext = window.AudioContext;
+    playbackCtx = new audioContext();
 
-    var audioContext = window.AudioContext
-    playbackCtx = new AudioContext()
-
-    setTimeout(checkMessages, 100)
+    setTimeout(checkMessages, 100);
 }
 
 function initializeRecorder(stream) {
@@ -177,7 +190,7 @@ function sendBuffer() {
         'method': 'PUT',
         'error': function(jqXHR, textStatus, errorThrown) {
             alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText)
-        },
+        }
     }).done(function(data) {
         console.log('upload done?')
         console.log(data)
