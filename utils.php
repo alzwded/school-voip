@@ -135,7 +135,7 @@ function touch_user($username)
 
 function add_user($username)
 {
-    if($username == get_user($username)) 
+    if(get_user($username))
     {
         echo "found $username\n";
         touch_user($username);

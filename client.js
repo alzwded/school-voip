@@ -91,23 +91,10 @@ function init_voip()
     };
 //    var recordRTC = null;
     
-    if (navigator.userAgent.indexOf("Firefox") !== -1) {
-//        navigator.mozGetUserMedia(session, initializeRecorder, onError);
-        
-        var p = navigator.mediaDevices.getUserMedia(session);
-        p.then(initializeRecorder);
-        p.catch(onError);
-    }
-    else if(navigator.userAgent.indexOf("Chrome") !== -1 ) {
-        navigator.webkitGetUserMedia(session, initializeRecorder, onError);
-    }
-    else {
-        alert('use either Chrome or Firefox');
-    }
-    
-    var audioContext = window.AudioContext;
-    playbackCtx = new audioContext();
+    navigator.webkitGetUserMedia(session, initializeRecorder, onError)
 
+    var audioContext = window.AudioContext
+    playbackCtx = new audioContext()
     setTimeout(checkMessages, 100);
 }
 
@@ -142,7 +129,7 @@ function recorderProcess(e) {
     state = getState()
     if(state === 'gray') return
     for(var i = 0; i < e.inputBuffer.length; i++) {
-        if(Math.abs(samp[i]) > 0.4) { // volum audio
+        if(Math.abs(samp[i]) > 0.2) { // volum audio
             if(state === 'recording') {
                 leBuf.push(samp[i])
             } else if(state === 'waiting') {
