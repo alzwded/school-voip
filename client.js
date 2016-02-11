@@ -54,10 +54,11 @@ function checkMessages() {
         console.log('start playback')
         source.onended = function() {
             console.log('end playback')
-            setTimeout(checkMessages, 1000) // aici ar trebui setat TimeOut-ul corect
+            //setTimeout(checkMessages, 1000) // aici ar trebui setat TimeOut-ul corect // unnecessary lag in unnecessary
+            setTimeout(checkMessages, 1)
         }
         source.onerror = function() {
-            console.loge('playback ended in an error')
+            console.log('playback ended in an error')
         }
         buffer = playbackCtx.createBuffer(1, request.response.byteLength, playbackCtx.sampleRate);
         // PHP outputting exceptions to stdout puts me off; round the
