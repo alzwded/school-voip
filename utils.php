@@ -125,7 +125,7 @@ function touch_user($username)
             $getUsers = $dbh->prepare("UPDATE users SET last = :last WHERE name = :name");
             $getUsers->bindValue(":name", $username, SQLITE3_TEXT);
             $getUsers->bindValue(":last", time(), SQLITE3_INTEGER);
-            $result = $getUsers->execute();
+            $getUsers->execute();
         } catch(Exception $e) {
             // do the unspeakable
             $again = true;
@@ -135,7 +135,7 @@ function touch_user($username)
 
 function add_user($username)
 {
-    if($user = get_user($username)) 
+    if(get_user($username))
     {
         echo "found $username\n";
         touch_user($username);
@@ -156,7 +156,7 @@ function add_user($username)
             $getUsers = $dbh->prepare("INSERT INTO users (name,last) VALUES(:name,:last)");
             $getUsers->bindValue(":name", $username, SQLITE3_TEXT);
             $getUsers->bindValue(":last", time(), SQLITE3_INTEGER);
-            $result = $getUsers->execute();
+            $getUsers->execute();
         } catch(Exception $e) {
             // do the unthinkable
             $again = true;

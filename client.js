@@ -21,7 +21,7 @@ function button_onclick(e) {
             $('#status').removeClass('idling playing talking')
             $('#status').addClass('gray')
             alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText)
-        },
+        }
     }).done(function(data) {
         $('#status').removeClass('gray')
         $('#status').addClass('idling')
@@ -38,7 +38,7 @@ function checkMessages() {
     var request = new XMLHttpRequest();
     request.open('GET', 'listen.php', true);
     request.responseType = 'arraybuffer';
-    request.timeout = 1000
+    request.timeout = 100
 
     // Decode asynchronously
     request.onload = function() {
@@ -46,14 +46,15 @@ function checkMessages() {
             setTimeout(checkMessages, 100)
             return
         }
-        var estimatedTime = (request.response.byteLength / 4) / 4.41 + 2
-        setTimeout(checkMessages, estimatedTime)
+//        var estimatedTime = (request.response.byteLength / 4) / 4.41 + 2
+//        setTimeout(checkMessages, estimatedTime)
 
         console.log('received ' + request.response.byteLength)
         var source = playbackCtx.createBufferSource()
         console.log('start playback')
         source.onended = function() {
             console.log('end playback')
+            setTimeout(checkMessages, 1000) // aici ar trebui setat TimeOut-ul corect
         }
         source.onerror = function() {
             console.loge('playback ended in an error')
@@ -85,16 +86,16 @@ function checkMessages() {
 function init_voip()
 {
     var session = {
-audio: true,
-       video: false
-    }
-    var recordRTC = null
+        audio: true,
+        video: false
+    };
+//    var recordRTC = null;
+    
     navigator.webkitGetUserMedia(session, initializeRecorder, onError)
 
     var audioContext = window.AudioContext
-    playbackCtx = new AudioContext()
-
-    setTimeout(checkMessages, 100)
+    playbackCtx = new audioContext()
+    setTimeout(checkMessages, 100);
 }
 
 function initializeRecorder(stream) {
@@ -117,7 +118,7 @@ function getState() {
     if(el.hasClass('gray')) {
         state = 'stop'
         return 'stop'
-    } else if(state == 'stop') {
+    } else if(state === 'stop') {
         state = 'silence'
     }
     return state
@@ -126,16 +127,16 @@ function getState() {
 function recorderProcess(e) {
     var samp = e.inputBuffer.getChannelData(0)
     state = getState()
-    if(state == 'gray') return
+    if(state === 'gray') return
     for(var i = 0; i < e.inputBuffer.length; i++) {
-        if(Math.abs(samp[i]) > 0.1) {
-            if(state == 'recording') {
+        if(Math.abs(samp[i]) > 0.2) { // volum audio
+            if(state === 'recording') {
                 leBuf.push(samp[i])
-            } else if(state == 'waiting') {
+            } else if(state === 'waiting') {
                 state = 'recording'
                 leBuf.push.apply(leBuf, leDuf)
                 leDuf = new Array()
-            } else if(state == 'silence') {
+            } else if(state === 'silence') {
                 state = 'recording'
                 $('#status').removeClass('idling playing talking')
                 $('#status').addClass('talking')
@@ -143,10 +144,10 @@ function recorderProcess(e) {
                 leBuf.push(samp[i])
             }
         } else {
-            if(state == 'recording') {
+            if(state === 'recording') {
                 state = 'waiting'
                 leDuf.push(samp[i])
-            } else if(state == 'waiting') {
+            } else if(state === 'waiting') {
                 leDuf.push(samp[i])
                 if(leDuf.length > 44100 / 1.5) {
                     var arr = leDuf.slice(0, 44100 / 20)
@@ -156,7 +157,7 @@ function recorderProcess(e) {
                     state = 'silence'
                     sendBuffer()
                 }
-            } else if(state == 'silence') {
+            } else if(state === 'silence') {
                 // NOP
             }
         }
@@ -177,7 +178,7 @@ function sendBuffer() {
         'method': 'PUT',
         'error': function(jqXHR, textStatus, errorThrown) {
             alert(textStatus + "\n" + errorThrown + "\n" + jqXHR.responseText)
-        },
+        }
     }).done(function(data) {
         console.log('upload done?')
         console.log(data)
